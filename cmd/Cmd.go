@@ -4,8 +4,10 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"github.com/urfave/cli/v3"
 	"os"
+
+	"github.com/MisterNorwood/SugarCube-Server/internal/utils"
+	"github.com/urfave/cli/v3"
 )
 
 func Execute() {
@@ -64,10 +66,44 @@ func Execute() {
 				Usage:   "Port for the program",
 				Aliases: []string{"P"},
 			},
+			&cli.BoolFlag{
+				Name:    "debug",
+				Usage:   "enable printing information",
+				Value:   false,
+				Aliases: []string{"D"},
+			},
 		},
 
 		Action: func(ctx context.Context, cli *cli.Command) error {
-			fmt.Println(cli.Int("db-port"))
+
+			var SessionCtx utils.SessionCtx
+			//No, there is no better way to do this
+
+			dbPort, err := utils.CheckForEnv(utils.EnvDBPort, cli.Int("db-port"))
+			checkEnvErr(err)
+			SessionCtx.DbPort = dbPort
+
+			webPort, err := utils.CheckForEnv(utils.EnvPort, cli.Int("port"))
+			checkEnvErr(err)
+			SessionCtx.ServerPort = webPort
+
+			uri, err := utils.CheckForEnv(utils.EnvDBURI, cli.String("db-uri"))
+			checkEnvErr(err)
+			SessionCtx.DbUri = uri
+
+			user, err := utils.CheckForEnv(utils.EnvDBUser, cli.String("db-user"))
+			checkEnvErr(err)
+			SessionCtx.DbUser = user
+
+			pass, err := utils.CheckForEnv(utils.EnvDBPassword, cli.String("db-password"))
+			checkEnvErr(err)
+			SessionCtx.DbPassword = pass
+
+			debug, err := utils.CheckForEnv(utils.EnvDebug, cli.Bool("debug"))
+			checkEnvErr(err)
+			SessionCtx.Debug = debug
+
+			SessionCtx.PrintEnv()
 
 			return nil
 		},
@@ -76,4 +112,14 @@ func Execute() {
 		fmt.Fprintf(os.Stderr, "Error: %v\n", err)
 		os.Exit(1)
 	}
+
+}
+
+func checkEnvErr(err error) {
+
+	if err != nil {
+		fmt.Println("Error: ", err)
+		os.Exit(1)
+	}
+
 }
