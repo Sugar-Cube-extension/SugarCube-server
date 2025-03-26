@@ -16,14 +16,14 @@ func Execute() {
 		Usage:   "Server for the SugarCube coupon extension",
 		Version: "v1.0.0-alpha.1",
 		Flags: []cli.Flag{
-			&cli.IntFlag{
+			&cli.UintFlag{
 				Name:    "db-port",
 				Value:   27017,
 				Usage:   "Mongod port",
 				Aliases: []string{"d"},
-				Action: func(ctx context.Context, cli *cli.Command, port int64) error {
+				Action: func(ctx context.Context, cli *cli.Command, port uint64) error {
 					uid := os.Geteuid()
-					if port < 1 || port > 65535 {
+					if port > 65535 {
 						return errors.New("Invalid port: Must be a number between 1 and 65535")
 					} else if port <= 1024 && uid != 0 {
 						return errors.New("Invalid port: Ports 1-1024 require root")
@@ -33,14 +33,14 @@ func Execute() {
 					return nil
 				},
 			},
-			&cli.IntFlag{
+			&cli.UintFlag{
 				Name:    "port",
 				Value:   80,
 				Usage:   "Port for the program",
 				Aliases: []string{"p"},
-				Action: func(ctx context.Context, cli *cli.Command, port int64) error {
+				Action: func(ctx context.Context, cli *cli.Command, port uint64) error {
 					uid := os.Geteuid()
-					if port < 1 || port > 65535 {
+					if port > 65535 {
 						return errors.New("Invalid port: Must be a number between 1 and 65535")
 					} else if port <= 1024 && uid != 0 {
 						return errors.New("Invalid port: Ports 1-1024 require root")
@@ -79,13 +79,13 @@ func Execute() {
 			var SessionCtx utils.SessionCtx
 			//No, there is no better way to do this
 
-			dbPort, err := utils.CheckForEnv(utils.EnvDBPort, cli.Int("db-port"))
+			dbPort, err := utils.CheckForEnv(utils.EnvDBPort, cli.Uint("db-port"))
 			checkEnvErr(err)
-			SessionCtx.DbPort = dbPort
+			SessionCtx.DbPort = uint16(dbPort)
 
-			webPort, err := utils.CheckForEnv(utils.EnvPort, cli.Int("port"))
+			webPort, err := utils.CheckForEnv(utils.EnvPort, cli.Uint("port"))
 			checkEnvErr(err)
-			SessionCtx.ServerPort = webPort
+			SessionCtx.ServerPort = uint16(webPort)
 
 			uri, err := utils.CheckForEnv(utils.EnvDBURI, cli.String("db-uri"))
 			checkEnvErr(err)

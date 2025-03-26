@@ -9,7 +9,7 @@ import (
 )
 
 type CliVar interface {
-	int | int64 | string | bool
+	int | uint64 | string | bool
 }
 
 const (
@@ -23,8 +23,8 @@ const (
 )
 
 type SessionCtx struct {
-	DbPort     int64
-	ServerPort int64
+	DbPort     uint16
+	ServerPort uint16
 	DbUri      string
 	DbUser     string
 	DbPassword string
@@ -46,10 +46,10 @@ func CheckForEnv[T CliVar](envVar string, cliVar T) (T, error) {
 		var intVal int
 		intVal, err = strconv.Atoi(envVarResult)
 		result = any(intVal).(T)
-	case int64:
-		var int64Val int64
-		int64Val, err = strconv.ParseInt(envVarResult, 10, 64)
-		result = any(int64Val).(T)
+	case uint64:
+		var uint64Val uint64
+		uint64Val, err = strconv.ParseUint(envVarResult, 10, 64)
+		result = any(uint64Val).(T)
 	case bool:
 		var boolVal bool
 		boolVal, err = strconv.ParseBool(envVarResult) //Parses 90% of possible bool naming schemas
@@ -95,6 +95,6 @@ func (s SessionCtx) GetFullUri() string {
 	}
 	buffer.WriteString(s.DbUri)
 	buffer.WriteString(":")
-	buffer.WriteString(strconv.FormatInt(s.DbPort, 10))
+	buffer.WriteString(strconv.Itoa(int(s.DbPort)))
 	return buffer.String()
 }
