@@ -10,7 +10,8 @@ import (
 	"github.com/urfave/cli/v3"
 )
 
-func Execute() {
+func Execute() *utils.SessionCtx {
+	var SessionCtx utils.SessionCtx
 	app := &cli.Command{
 		Name:    "sugarcube-server",
 		Usage:   "Server for the SugarCube coupon extension",
@@ -76,7 +77,6 @@ func Execute() {
 
 		Action: func(ctx context.Context, cli *cli.Command) error {
 
-			var SessionCtx utils.SessionCtx
 			//No, there is no better way to do this
 
 			dbPort, err := utils.CheckForEnv(utils.EnvDBPort, cli.Uint("db-port"))
@@ -103,8 +103,6 @@ func Execute() {
 			checkEnvErr(err)
 			SessionCtx.Debug = debug
 
-			SessionCtx.PrintEnv()
-
 			return nil
 		},
 	}
@@ -113,6 +111,7 @@ func Execute() {
 		os.Exit(1)
 	}
 
+	return &SessionCtx
 }
 
 func checkEnvErr(err error) {
