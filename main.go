@@ -1,6 +1,8 @@
 package main
 
 import (
+	"os"
+
 	"github.com/MisterNorwood/SugarCube-Server/cmd"
 	"github.com/MisterNorwood/SugarCube-Server/internal/utils"
 	"github.com/labstack/echo/v4"
@@ -16,12 +18,19 @@ var (
 )
 
 func main() {
-	Session := cmd.Execute()
-	Session.PrintEnv()
+	session := cmd.Execute()
+	SessionCtx = session
+	SessionCtx.PrintEnv()
+	err := Init(SessionCtx)
+	if err != nil {
+		os.Exit(1)
+	}
 }
 
-func Init(UserSession *utils.SessionCtx) {
+func Init(UserSession *utils.SessionCtx) error {
 	zerolog.TimeFieldFormat = zerolog.TimeFormatUnix
+	log.Logger = log.Output(zerolog.ConsoleWriter{Out: os.Stdout}) //Pretty print
 	log.Info().Msg("Initializing application...")
+	return nil
 
 }

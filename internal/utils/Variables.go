@@ -20,6 +20,13 @@ const (
 	EnvDBPassword = "SUGARCUBE_DB_PASSWORD"
 	EnvDebug      = "SUGARCUBE_DEBUG"
 	UriProtocol   = "mongodb://"
+
+	ColorReset  = "\033[0m"
+	ColorCyan   = "\033[36m"
+	ColorGreen  = "\033[32m"
+	ColorYellow = "\033[33m"
+	ColorRed    = "\033[31m"
+	ColorBold   = "\033[1m"
 )
 
 type SessionCtx struct {
@@ -64,22 +71,28 @@ func CheckForEnv[T CliVar](envVar string, cliVar T) (T, error) {
 }
 
 func (s SessionCtx) PrintEnv() {
-	fmt.Println("###SugarCube Configuration###")
-	fmt.Printf("  Database Port    : %d\n", s.DbPort)
-	fmt.Printf("  Server Port      : %d\n", s.ServerPort)
-	fmt.Printf("  Database URI     : %s\n", s.DbUri)
-	if s.DbUser != "" {
-		fmt.Printf("  Database User    : %s\n", s.DbUser)
-	} else {
-		fmt.Println("  Database User    : [not set]")
-	}
-	if s.DbPassword != "" {
-		fmt.Println("  Database Password: [hidden]") // We obv hide the password for security reasons
-	} else {
-		fmt.Println("  Database Password: [not set]")
-	}
-	fmt.Printf("  Debug Mode       : %t\n", s.Debug)
+	fmt.Println(ColorCyan + "########################################" + ColorReset)
+	fmt.Println(ColorCyan + "#       " + ColorBold + "SugarCube Configuration" + ColorReset + ColorCyan + "      #" + ColorReset)
+	fmt.Println(ColorCyan + "########################################" + ColorReset)
 
+	fmt.Printf(ColorGreen+"  %-18s:"+ColorReset+" %d\n", "Database Port", s.DbPort)
+	fmt.Printf(ColorGreen+"  %-18s:"+ColorReset+" %d\n", "Server Port", s.ServerPort)
+	fmt.Printf(ColorGreen+"  %-18s:"+ColorReset+" %s\n", "Database URI", s.DbUri)
+
+	if s.DbUser != "" {
+		fmt.Printf(ColorGreen+"  %-18s:"+ColorReset+" %s\n", "Database User", s.DbUser)
+	} else {
+		fmt.Printf(ColorYellow+"  %-18s:"+ColorReset+" %s\n", "Database User", "[not set]")
+	}
+
+	if s.DbPassword != "" {
+		fmt.Printf(ColorRed+"  %-18s:"+ColorReset+" %s\n", "Database Password", "[hidden]") // Hide for security
+	} else {
+		fmt.Printf(ColorYellow+"  %-18s:"+ColorReset+" %s\n", "Database Password", "[not set]")
+	}
+
+	fmt.Printf(ColorGreen+"  %-18s:"+ColorReset+" %t\n", "Debug Mode", s.Debug)
+	fmt.Println(ColorCyan + "########################################" + ColorReset)
 }
 
 func (s SessionCtx) GetFullUri() string {
