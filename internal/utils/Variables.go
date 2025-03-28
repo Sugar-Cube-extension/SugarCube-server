@@ -21,6 +21,7 @@ const (
 	EnvDebug      = "SUGARCUBE_DEBUG"
 	UriProtocol   = "mongodb://"
 
+	//Cool colors
 	ColorReset  = "\033[0m"
 	ColorCyan   = "\033[36m"
 	ColorGreen  = "\033[32m"
