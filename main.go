@@ -29,10 +29,12 @@ func main() {
 	session := cmd.Execute()
 	SessionCtx = session
 	SessionCtx.PrintEnv()
-	err := Init(SessionCtx)
-	if err != nil {
-		os.Exit(1)
-	}
+	go func() {
+		err := Init(SessionCtx)
+		if err != nil {
+			os.Exit(1)
+		}
+	}()
 
 	quit := make(chan os.Signal, 1)
 	signal.Notify(quit, os.Interrupt, os.Kill)
@@ -44,19 +46,22 @@ func main() {
 	shutdownCtx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 
-	//FIXME: Yeah I don't know whats wrong atm
 	// Gracefully shutdown Echo server
-	if err := WebServer.Shutdown(shutdownCtx); err != nil {
-		log.Error().Err(err).Msg("Error shutting down Echo server")
-	} else {
-		log.Info().Msg("Echo server shut down gracefully")
+	if WebServer != nil {
+		if err := WebServer.Shutdown(shutdownCtx); err != nil {
+			log.Error().Err(err).Msg("Error shutting down Echo server")
+		} else {
+			log.Info().Msg("Echo server shut down gracefully")
+		}
 	}
 
 	// Gracefully disconnect from MongoDB
-	if err := DBClient.Disconnect(shutdownCtx); err != nil {
-		log.Error().Err(err).Msg("Error closing MongoDB connection")
-	} else {
-		log.Info().Msg("MongoDB connection closed gracefully")
+	if DBClient != nil {
+		if err := DBClient.Disconnect(shutdownCtx); err != nil {
+			log.Error().Err(err).Msg("Error closing MongoDB connection")
+		} else {
+			log.Info().Msg("MongoDB connection closed gracefully")
+		}
 	}
 
 	log.Warn().Msg("Application exited cleanly")
