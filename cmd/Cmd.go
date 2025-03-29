@@ -59,12 +59,12 @@ func Execute() *utils.SessionCtx {
 			},
 			&cli.StringFlag{
 				Name:    "db-user",
-				Usage:   "Port for the program",
+				Usage:   "Uatabase username",
 				Aliases: []string{"u"},
 			},
 			&cli.StringFlag{
 				Name:    "db-password",
-				Usage:   "Port for the program",
+				Usage:   "Database password",
 				Aliases: []string{"P"},
 			},
 			&cli.BoolFlag{
