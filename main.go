@@ -27,6 +27,9 @@ var (
 
 func main() {
 	session := cmd.Execute()
+	if session.IsEmpty() {
+		os.Exit(0)
+	}
 	SessionCtx = session
 	SessionCtx.PrintEnv()
 	go func() {

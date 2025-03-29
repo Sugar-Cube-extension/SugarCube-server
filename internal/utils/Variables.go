@@ -70,6 +70,13 @@ func CheckForEnv[T CliVar](envVar string, cliVar T) (T, error) {
 	return result, err
 
 }
+func (s *SessionCtx) IsEmpty() bool {
+	if s == nil {
+		return true
+	}
+	return s.DbPort == 0 && s.ServerPort == 0 && s.DbUri == ""
+
+}
 
 func (s SessionCtx) PrintEnv() {
 	fmt.Println(ColorCyan + "########################################" + ColorReset)
