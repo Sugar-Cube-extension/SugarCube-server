@@ -21,3 +21,16 @@ services:
       # ME_CONFIG_MONGODB_ADMINPASSWORD: example
       ME_CONFIG_MONGODB_URL: mongodb://mongo:27017
       ME_CONFIG_BASICAUTH: false
+
+  sugarcubed:
+    build: ..
+    depends_on:
+      - mongo
+    ports:
+      - 8080:8080
+    environment:
+      - SUGARCUBE_DB_URI=mongo
+      - SUGARCUBE_DB_PORT=27017
+      - SUGARCUBE_PORT=8080
+      - SUGARCUBE_DEBUG=true
+    restart: always
