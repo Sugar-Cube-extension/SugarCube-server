@@ -53,7 +53,7 @@ func Execute() *utils.SessionCtx {
 			},
 			&cli.StringFlag{
 				Name:    "db-uri",
-				Value:   `mongodb://localhost`,
+				Value:   `localhost`,
 				Usage:   "Port for the program",
 				Aliases: []string{"U"},
 			},

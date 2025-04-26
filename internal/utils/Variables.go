@@ -117,5 +117,6 @@ func (s SessionCtx) GetFullUri() string {
 	buffer.WriteString(s.DbUri)
 	buffer.WriteString(":")
 	buffer.WriteString(strconv.Itoa(int(s.DbPort)))
+
 	return buffer.String()
 }

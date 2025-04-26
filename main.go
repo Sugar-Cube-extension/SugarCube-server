@@ -89,16 +89,19 @@ func Init(UserSession *utils.SessionCtx) error {
 		return err
 	}
 	DBClient = client
+	log.Info().Str("uri", SessionCtx.GetFullUri()).Msg("Attempting to ping database...")
 
 	err = DBClient.Ping(ctx, nil)
 	if err != nil {
 		log.Fatal().Err(err).Msg("Failed to Ping the database")
 		return err
 	}
-	log.Debug().Msg("Successfuly connected to MongoDB server")
+	log.Info().Msg("Successfuly connected to MongoDB server")
 
 	// Echo Server Setup
 	e := echo.New()
+	e.HideBanner = true
+	e.HidePort = true
 	e.Use(middleware.ZeroLogMiddleware)
 
 	// Set up routes
