@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"github.com/MisterNorwood/SugarCube-Server/cmd"
+	apiHandler "github.com/MisterNorwood/SugarCube-Server/internal/api"
 	"github.com/MisterNorwood/SugarCube-Server/internal/middleware"
 	"github.com/MisterNorwood/SugarCube-Server/internal/utils"
 	"github.com/labstack/echo/v4"
@@ -105,10 +106,7 @@ func Init(UserSession *utils.SessionCtx) error {
 	e.Use(middleware.ZeroLogMiddleware)
 
 	// Set up routes
-	e.GET("/", func(c echo.Context) error {
-		log.Info().Str("path", "/").Msg("Received request")
-		return c.String(http.StatusOK, "Hello, World!")
-	})
+	setupRoutes(e)
 
 	port := strconv.FormatUint(uint64(SessionCtx.ServerPort), 10)
 	go func() {
@@ -127,4 +125,11 @@ func getHostname() string {
 		return "unknown"
 	}
 	return hostname
+}
+
+func setupRoutes(e *echo.Echo) {
+	api := e.Group("/api")
+
+	api.GET("/coupons", apiHandler.GetCouponsForPage)
+	// api.POST("/coupons", handler.CreateCoupon)
 }
