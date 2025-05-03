@@ -1,13 +1,13 @@
 package middleware
 
 import (
+	"github.com/labstack/echo/v4"
+	"github.com/rs/zerolog/log"
 	"net/http"
 	"strings"
-
-	"github.com/labstack/echo/v4"
 )
 
-var USER_AGENT string = "SugarCube/" // For now we wont enforce API versions, dont care
+var USER_AGENT string = "SugarCube/"
 
 func CheckUserAgent(next echo.HandlerFunc) echo.HandlerFunc {
 	return func(ctx echo.Context) error {
@@ -19,9 +19,9 @@ func CheckUserAgent(next echo.HandlerFunc) echo.HandlerFunc {
 				Str("path", ctx.Request().URL.Path).
 				Msg("Blocked request due to invalid User-Agent")
 
-			return next(ctx)
+			return ctx.String(http.StatusForbidden, "Forbidden")
 
 		}
-		return ctx.String(http.StatusForbidden, "Forbidden")
+		return next(ctx)
 	}
 }

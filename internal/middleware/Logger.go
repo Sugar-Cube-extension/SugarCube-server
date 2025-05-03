@@ -1,12 +1,11 @@
 package middleware
 
 import (
-	"github.com/labstack/echo/v4"
-	"github.com/rs/zerolog"
 	"time"
-)
 
-var log zerolog.Logger
+	"github.com/labstack/echo/v4"
+	"github.com/rs/zerolog/log"
+)
 
 func ZeroLogMiddleware(next echo.HandlerFunc) echo.HandlerFunc {
 	return func(c echo.Context) error {

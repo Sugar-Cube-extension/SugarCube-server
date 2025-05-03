@@ -16,7 +16,6 @@ import (
 	"github.com/labstack/echo/v4"
 	"github.com/rs/zerolog"
 	"github.com/rs/zerolog/log"
-	"go.mongodb.org/mongo-driver/v2/bson"
 	"go.mongodb.org/mongo-driver/v2/mongo"
 	"go.mongodb.org/mongo-driver/v2/mongo/options"
 )
@@ -92,6 +91,7 @@ func Init(UserSession *utils.SessionCtx) error {
 		return err
 	}
 	DBClient = client
+	middleware.DBMiddlewareClient = DBClient
 	log.Info().Str("uri", SessionCtx.GetFullUri()).Msg("Attempting to ping database...")
 
 	err = DBClient.Ping(ctx, nil)
@@ -109,6 +109,7 @@ func Init(UserSession *utils.SessionCtx) error {
 	e.HidePort = true
 	// Middleware
 	e.Use(middleware.ZeroLogMiddleware)
+	e.Use(middleware.CheckIPBanList)
 	if !UserSession.Debug {
 		e.Use(middleware.CheckUserAgent)
 	}
@@ -140,28 +141,4 @@ func setupRoutes(e *echo.Echo) {
 
 	api.GET("/coupons", apiHandler.GetCouponsForPage)
 	// api.POST("/coupons", handler.CreateCoupon)
-}
-
-func checkCollectionExists(client *mongo.Client, dbName, collectionName string) bool {
-	collection := client.Database(dbName).Collection(collectionName)
-
-	var result bson.M
-	err := collection.FindOne(context.Background(), bson.M{}).Decode(&result)
-
-	if err == nil {
-		return true
-	}
-
-	if err == mongo.ErrNoDocuments {
-		return true
-	}
-
-	return false
-}
-
-func checkDatabaseExists(client *mongo.Client, dbName string) {
-	values, _ := client.ListDatabaseNames(context.Background(), bson.M{"name": dbName})
-	if len(values) == 0 {
-
-	}
 }

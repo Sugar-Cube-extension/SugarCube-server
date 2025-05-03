@@ -32,5 +32,5 @@ services:
       - SUGARCUBE_DB_URI=mongo
       - SUGARCUBE_DB_PORT=27017
       - SUGARCUBE_PORT=8080
-      - SUGARCUBE_DEBUG=true
+      - SUGARCUBE_DEBUG=false
     restart: always
