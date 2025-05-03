@@ -108,6 +108,7 @@ func Init(UserSession *utils.SessionCtx) error {
 	e.HideBanner = true
 	e.HidePort = true
 	// Middleware
+	e.Use(middleware.GlobalHeaderMiddleware)
 	e.Use(middleware.ZeroLogMiddleware)
 	e.Use(middleware.CheckIPBanList)
 	if !UserSession.Debug {
