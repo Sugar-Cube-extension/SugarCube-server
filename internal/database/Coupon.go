@@ -1,0 +1,59 @@
+package database
+
+import (
+	"context"
+	"fmt"
+	"time"
+
+	"go.mongodb.org/mongo-driver/v2/bson"
+	"go.mongodb.org/mongo-driver/v2/mongo"
+)
+
+type CouponEntry struct {
+	Coupon    string         `bson:"coupon" json:"coupon"`           //Actual coupon
+	Score     int            `bson:"score" json:"score"`             //Internal, a score to track how effective the code is
+	ExpiresAt time.Time      `bson:"expires_at" json:"expires_at"`   //IMPORTANT: ISO8601-formatted
+	Extra     map[string]any `bson:",inline" json:"extra,omitempty"` //Random stuff for other sites
+}
+
+type Site struct {
+	Name          string        `json:"name"` //URL
+	CouponEntries []CouponEntry `json:"coupon_entries"`
+}
+
+func GetSiteStruct(siteName string, db *mongo.Database) (*Site, error) {
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+
+	collections, err := db.ListCollectionNames(ctx, bson.M{"name": siteName})
+	if err != nil {
+		return nil, fmt.Errorf("error listing collections: %w", err)
+	}
+	if len(collections) == 0 {
+		return nil, fmt.Errorf("site '%s' does not exist", siteName)
+	}
+
+	coll := db.Collection(siteName)
+	cur, err := coll.Find(ctx, bson.M{})
+	if err != nil {
+		return nil, fmt.Errorf("error fetching coupons from '%s': %w", siteName, err)
+	}
+	defer cur.Close(ctx)
+
+	var coupons []CouponEntry
+	for cur.Next(ctx) {
+		var entry CouponEntry
+		if err := cur.Decode(&entry); err != nil {
+			return nil, fmt.Errorf("decode error: %w", err)
+		}
+		coupons = append(coupons, entry)
+	}
+	if err := cur.Err(); err != nil {
+		return nil, fmt.Errorf("cursor error: %w", err)
+	}
+
+	return &Site{
+		Name:          siteName,
+		CouponEntries: coupons,
+	}, nil
+}
