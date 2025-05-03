@@ -103,7 +103,9 @@ func Init(UserSession *utils.SessionCtx) error {
 	e := echo.New()
 	e.HideBanner = true
 	e.HidePort = true
+	// Middleware
 	e.Use(middleware.ZeroLogMiddleware)
+	e.Use(middleware.CheckUserAgent)
 
 	// Set up routes
 	setupRoutes(e)
