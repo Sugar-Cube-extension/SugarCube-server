@@ -11,10 +11,12 @@ import (
 	"github.com/MisterNorwood/SugarCube-Server/cmd"
 	apiHandler "github.com/MisterNorwood/SugarCube-Server/internal/api"
 	"github.com/MisterNorwood/SugarCube-Server/internal/middleware"
+	"github.com/MisterNorwood/SugarCube-Server/internal/services"
 	"github.com/MisterNorwood/SugarCube-Server/internal/utils"
 	"github.com/labstack/echo/v4"
 	"github.com/rs/zerolog"
 	"github.com/rs/zerolog/log"
+	"go.mongodb.org/mongo-driver/v2/bson"
 	"go.mongodb.org/mongo-driver/v2/mongo"
 	"go.mongodb.org/mongo-driver/v2/mongo/options"
 )
@@ -99,13 +101,17 @@ func Init(UserSession *utils.SessionCtx) error {
 	}
 	log.Info().Msg("Successfuly connected to MongoDB server")
 
+	services.InitBanLists(DBClient.Database("sugarcube_admin"), *ProgramContext)
+
 	// Echo Server Setup
 	e := echo.New()
 	e.HideBanner = true
 	e.HidePort = true
 	// Middleware
 	e.Use(middleware.ZeroLogMiddleware)
-	e.Use(middleware.CheckUserAgent)
+	if !UserSession.Debug {
+		e.Use(middleware.CheckUserAgent)
+	}
 
 	// Set up routes
 	setupRoutes(e)
@@ -134,4 +140,28 @@ func setupRoutes(e *echo.Echo) {
 
 	api.GET("/coupons", apiHandler.GetCouponsForPage)
 	// api.POST("/coupons", handler.CreateCoupon)
+}
+
+func checkCollectionExists(client *mongo.Client, dbName, collectionName string) bool {
+	collection := client.Database(dbName).Collection(collectionName)
+
+	var result bson.M
+	err := collection.FindOne(context.Background(), bson.M{}).Decode(&result)
+
+	if err == nil {
+		return true
+	}
+
+	if err == mongo.ErrNoDocuments {
+		return true
+	}
+
+	return false
+}
+
+func checkDatabaseExists(client *mongo.Client, dbName string) {
+	values, _ := client.ListDatabaseNames(context.Background(), bson.M{"name": dbName})
+	if len(values) == 0 {
+
+	}
 }
