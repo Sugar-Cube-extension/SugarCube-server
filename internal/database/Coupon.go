@@ -106,6 +106,11 @@ func AddSite(siteName string, db *mongo.Database) error {
 		return fmt.Errorf("site collection for '%s' failed: %w ", siteName, err)
 
 	}
+	indexErr := EnsureCouponIndex(db.Collection(siteName))
+	if indexErr != nil {
+		return fmt.Errorf("collection index adjustment for site '%s' failed: %w", siteName, indexErr)
+	}
+
 	return nil
 
 }
