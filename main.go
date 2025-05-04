@@ -143,5 +143,6 @@ func setupRoutes(e *echo.Echo) {
 	api := e.Group("/api")
 
 	api.GET("/coupons", apiHandler.GetCouponsForPage)
-	// api.POST("/coupons", handler.CreateCoupon)
+	api.POST("/coupons", apiHandler.AddCouponToSite)
+	api.POST("/site", apiHandler.RequestAddSite)
 }

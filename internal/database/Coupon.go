@@ -2,11 +2,13 @@ package database
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"time"
 
 	"go.mongodb.org/mongo-driver/v2/bson"
 	"go.mongodb.org/mongo-driver/v2/mongo"
+	"go.mongodb.org/mongo-driver/v2/mongo/options"
 )
 
 type CouponEntry struct {
@@ -56,4 +58,66 @@ func GetSiteStruct(siteName string, db *mongo.Database) (*Site, error) {
 		Name:          siteName,
 		CouponEntries: coupons,
 	}, nil
+
+}
+
+func AddCouponToExistingSite(siteName string, coupon CouponEntry, db *mongo.Database) error {
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+
+	collections, err := db.ListCollectionNames(ctx, bson.M{"name": siteName})
+	if err != nil {
+		return fmt.Errorf("error listing collections: %w", err)
+	}
+	if len(collections) == 0 {
+		return fmt.Errorf("site '%s' does not exist", siteName)
+	}
+
+	filter := bson.M{"coupon": coupon.Coupon}
+	var existing bson.M
+	err = db.Collection(siteName).FindOne(ctx, filter).Decode(&existing)
+	if err == nil {
+		return fmt.Errorf("coupon '%s' already exists", coupon.Coupon)
+	} else if !errors.Is(err, mongo.ErrNoDocuments) {
+		return fmt.Errorf("failed to check existing coupon: %w", err)
+	}
+
+	_, err = db.Collection(siteName).InsertOne(ctx, coupon)
+	if err != nil {
+		return fmt.Errorf("insert failed: %w", err)
+	}
+
+	return nil
+}
+
+func AddSite(siteName string, db *mongo.Database) error {
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+
+	collections, err := db.ListCollectionNames(ctx, bson.M{"name": siteName})
+	if err != nil {
+		return fmt.Errorf("error listing collections: %w", err)
+	}
+	if len(collections) != 0 {
+		return fmt.Errorf("site '%s' does already exists!", siteName)
+	}
+	e := db.CreateCollection(ctx, siteName)
+	if e != nil {
+		return fmt.Errorf("site collection for '%s' failed: %w ", siteName, err)
+
+	}
+	return nil
+
+}
+
+func EnsureCouponIndex(collection *mongo.Collection) error {
+	indexModel := mongo.IndexModel{
+		Keys: bson.D{{Key: "coupon", Value: 1}},
+		Options: options.Index().
+			SetUnique(true).
+			SetName("coupon_idx"),
+	}
+
+	_, err := collection.Indexes().CreateOne(context.TODO(), indexModel)
+	return err
 }
