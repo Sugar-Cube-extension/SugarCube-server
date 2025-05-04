@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"github.com/MisterNorwood/SugarCube-Server/cmd"
+	"github.com/MisterNorwood/SugarCube-Server/internal/api"
 	apiHandler "github.com/MisterNorwood/SugarCube-Server/internal/api"
 	"github.com/MisterNorwood/SugarCube-Server/internal/middleware"
 	"github.com/MisterNorwood/SugarCube-Server/internal/services"
@@ -92,6 +93,7 @@ func Init(UserSession *utils.SessionCtx) error {
 	}
 	DBClient = client
 	middleware.DBMiddlewareClient = DBClient
+	api.ApiClient = DBClient.Database("sugarcube")
 	log.Info().Str("uri", SessionCtx.GetFullUri()).Msg("Attempting to ping database...")
 
 	err = DBClient.Ping(ctx, nil)
