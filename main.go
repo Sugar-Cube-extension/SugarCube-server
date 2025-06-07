@@ -22,10 +22,11 @@ import (
 )
 
 var (
-	SessionCtx     *utils.SessionCtx
-	DBClient       *mongo.Client
-	WebServer      *echo.Echo
-	ProgramContext *context.Context
+	SessionCtx         *utils.SessionCtx
+	DBClient           *mongo.Client
+	WebServer          *echo.Echo
+	ProgramContext     *context.Context
+	UserSessionManager *services.SessionManager
 )
 
 func main() {
@@ -104,6 +105,9 @@ func Init(UserSession *utils.SessionCtx) error {
 	log.Info().Msg("Successfuly connected to MongoDB server")
 
 	services.InitBanLists(DBClient.Database("sugarcube_admin"), *ProgramContext)
+
+	UserSessionManager = services.NewSessionManager()
+	services.StartPruner(UserSessionManager)
 
 	// Echo Server Setup
 	e := echo.New()
