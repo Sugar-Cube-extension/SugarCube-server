@@ -29,12 +29,16 @@ var (
 )
 
 func main() {
+	// initialize logger
+	utils.InitLogger()
+
 	session := cmd.Execute()
 	if session.IsEmpty() {
 		os.Exit(0)
 	}
 	SessionCtx = session
 	SessionCtx.PrintEnv()
+
 	go func() {
 		err := Init(SessionCtx)
 		if err != nil {
@@ -79,9 +83,7 @@ func Init(UserSession *utils.SessionCtx) error {
 	defer cancel()
 	ProgramContext = &ctx
 
-	// Logger Setup
 	zerolog.TimeFieldFormat = zerolog.TimeFormatUnix
-	log.Logger = log.Output(zerolog.ConsoleWriter{Out: os.Stdout}) // Pretty print in dev
 
 	log.Info().Str("version", "1.0.0").Str("hostname", getHostname()).Msg("Initializing application...")
 
@@ -94,6 +96,7 @@ func Init(UserSession *utils.SessionCtx) error {
 	DBClient = client
 	middleware.DBMiddlewareClient = DBClient
 	api.ApiClient = DBClient.Database("sugarcube")
+
 	log.Info().Str("uri", SessionCtx.GetFullUri()).Msg("Attempting to ping database...")
 
 	err = DBClient.Ping(ctx, nil)
@@ -101,7 +104,7 @@ func Init(UserSession *utils.SessionCtx) error {
 		log.Fatal().Err(err).Msg("Failed to Ping the database")
 		return err
 	}
-	log.Info().Msg("Successfuly connected to MongoDB server")
+	log.Info().Msg("Successfully connected to MongoDB server")
 
 	services.InitBanLists(DBClient.Database("sugarcube_admin"), *ProgramContext)
 
@@ -109,6 +112,7 @@ func Init(UserSession *utils.SessionCtx) error {
 	e := echo.New()
 	e.HideBanner = true
 	e.HidePort = true
+
 	// Middleware
 	e.Use(middleware.GlobalHeaderMiddleware)
 	e.Use(middleware.ZeroLogMiddleware)
@@ -117,7 +121,7 @@ func Init(UserSession *utils.SessionCtx) error {
 		e.Use(middleware.CheckUserAgent)
 	}
 
-	// Set up routes
+	// Routes
 	setupRoutes(e)
 
 	port := strconv.FormatUint(uint64(SessionCtx.ServerPort), 10)
@@ -131,6 +135,7 @@ func Init(UserSession *utils.SessionCtx) error {
 	WebServer = e
 	return nil
 }
+
 func getHostname() string {
 	hostname, err := os.Hostname()
 	if err != nil {
