@@ -107,8 +107,9 @@ func Init(UserSession *utils.SessionCtx) error {
 	services.InitBanLists(DBClient.Database("sugarcube_admin"), *ProgramContext)
 
 	UserSessionManager = services.NewSessionManager()
-	services.StartPruner(UserSessionManager)
+	UserSessionManager.StartPruner()
 	apiHandler.SessionManager = UserSessionManager
+	services.StartNegativeScorePruner(DBClient.Database(("sugarcube")))
 
 	// Echo Server Setup
 	e := echo.New()

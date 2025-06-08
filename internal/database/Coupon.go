@@ -115,6 +115,21 @@ func AddSite(siteName string, db *mongo.Database) error {
 
 }
 
+func ProcessCallback(db *mongo.Database, siteName string, callbackResults map[string]bool) {
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+
+	coll := db.Collection(siteName)
+
+	for code, worked := range callbackResults {
+		if !worked {
+			filter := bson.M{"coupon": code}
+			update := bson.M{"$inc": bson.M{"score": -1}}
+			_, _ = coll.UpdateOne(ctx, filter, update)
+		}
+	}
+}
+
 func EnsureCouponIndex(collection *mongo.Collection) error {
 	indexModel := mongo.IndexModel{
 		Keys: bson.D{{Key: "coupon", Value: 1}},

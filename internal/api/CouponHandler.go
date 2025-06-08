@@ -142,7 +142,7 @@ func RecieveCallBack(c echo.Context) error {
 		})
 	}
 	defer SessionManager.RemoveSession(callback.RequestID)
-	// TODO: add something to do with this
+	database.ProcessCallback(ApiClient, callback.Site, callback.Results)
 	return c.JSON(http.StatusAccepted, map[string]string{
 		"status": "Success",
 	})
