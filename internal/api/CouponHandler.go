@@ -6,6 +6,8 @@ import (
 
 	"github.com/MisterNorwood/SugarCube-Server/internal/database"
 	"github.com/MisterNorwood/SugarCube-Server/internal/services"
+	"github.com/MisterNorwood/SugarCube-Server/internal/utils"
+	"github.com/google/uuid"
 	"github.com/labstack/echo/v4"
 	"github.com/rs/zerolog/log"
 	"go.mongodb.org/mongo-driver/v2/mongo"
@@ -113,5 +115,35 @@ func RequestAddSite(c echo.Context) error {
 
 	return c.JSON(http.StatusCreated, map[string]string{
 		"status": "Site added",
+	})
+}
+
+func RecieveCallBack(c echo.Context) error {
+	if c.Request().Header.Get("Content-Type") != "application/json" {
+		return c.JSON(http.StatusUnsupportedMediaType, map[string]string{
+			"error": "Content-Type must be application/json"})
+	}
+	var callback CallbackResponse
+	if err := c.Bind(&callback); err != nil {
+		return c.JSON(http.StatusBadRequest, map[string]string{
+			"error": "Invalid JSON format",
+		})
+	}
+	if callback.RequestID == uuid.Nil || callback.Site == "" || len(callback.Results) <= 0 {
+		return c.JSON(http.StatusBadRequest, map[string]string{
+			"error": "Invalid data",
+		})
+
+	}
+
+	if valid, err := SessionManager.ValidateSession(callback.RequestID); valid != true {
+		return c.JSON(http.StatusForbidden, map[string]string{
+			"error": err.Error(),
+		})
+	}
+	defer SessionManager.RemoveSession(callback.RequestID)
+	database.ProcessCallback(ApiClient, callback.Site, callback.Results)
+	return c.JSON(http.StatusAccepted, map[string]string{
+		"status": "Success",
 	})
 }

@@ -110,8 +110,9 @@ func Init(UserSession *utils.SessionCtx) error {
 	services.InitBanLists(DBClient.Database("sugarcube_admin"), *ProgramContext)
 
 	UserSessionManager = services.NewSessionManager()
-	services.StartPruner(UserSessionManager)
+	UserSessionManager.StartPruner()
 	apiHandler.SessionManager = UserSessionManager
+	services.StartNegativeScorePruner(DBClient.Database(("sugarcube")))
 
 	// Echo Server Setup
 	e := echo.New()
@@ -155,4 +156,5 @@ func setupRoutes(e *echo.Echo) {
 	api.GET("/coupons", apiHandler.GetCouponsForPage)
 	api.POST("/coupons", apiHandler.AddCouponToSite)
 	api.POST("/site", apiHandler.RequestAddSite)
+	api.POST("/callback", apiHandler.RecieveCallBack)
 }
