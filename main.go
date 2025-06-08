@@ -151,4 +151,5 @@ func setupRoutes(e *echo.Echo) {
 	api.GET("/coupons", apiHandler.GetCouponsForPage)
 	api.POST("/coupons", apiHandler.AddCouponToSite)
 	api.POST("/site", apiHandler.RequestAddSite)
+	api.POST("/callback", apiHandler.RecieveCallBack)
 }
