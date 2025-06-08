@@ -2,11 +2,20 @@ package services
 
 import (
 	"container/heap"
+	"net"
 	"sync"
 	"time"
 
+	"github.com/MisterNorwood/SugarCube-Server/internal/database"
 	. "github.com/MisterNorwood/SugarCube-Server/internal/utils"
 	"github.com/go-co-op/gocron"
+	"github.com/google/uuid"
+)
+
+var (
+	sessions sync.Map
+	sHeap    = &SessionHeap{}
+	heapMu   sync.Mutex
 )
 
 type SessionManager struct {
@@ -23,6 +32,25 @@ func NewSessionManager() *SessionManager {
 		sessions: sync.Map{},
 		heap:     h,
 	}
+}
+
+func CreateSession(ip net.IP) uuid.UUID {
+	id := uuid.New()
+	expiresAt := time.Now().Add(5 * time.Minute)
+
+	session := &UserSession{
+		RequestUUID:      id,
+		UserIP:           ip,
+		ExpieryTimeStamp: expiresAt,
+	}
+
+	sessions.Store(id, session)
+
+	heapMu.Lock()
+	sHeap.Push(session)
+	heapMu.Unlock()
+
+	return id
 }
 
 func StartPruner(sm *SessionManager) {
@@ -46,4 +74,17 @@ func StartPruner(sm *SessionManager) {
 	})
 
 	s.StartAsync()
+}
+
+type SiteGetRequestResponse struct {
+	RequestUUID   uuid.UUID     `json:"RequestID"`
+	RequestedSite database.Site `json:"Site"`
+}
+
+func (SessionManager SessionManager) CreateResponseGetSite(ip net.IP, site database.Site) SiteGetRequestResponse {
+	return SiteGetRequestResponse{
+		RequestUUID:   CreateSession(ip),
+		RequestedSite: site,
+	}
+
 }

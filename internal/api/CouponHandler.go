@@ -1,15 +1,18 @@
 package api
 
 import (
+	"net"
 	"net/http"
 
 	"github.com/MisterNorwood/SugarCube-Server/internal/database"
+	"github.com/MisterNorwood/SugarCube-Server/internal/services"
 	"github.com/labstack/echo/v4"
 	"github.com/rs/zerolog/log"
 	"go.mongodb.org/mongo-driver/v2/mongo"
 )
 
 var ApiClient *mongo.Database
+var SessionManager *services.SessionManager
 
 // GET /api/coupons?site=<sitename>
 func GetCouponsForPage(c echo.Context) error {
@@ -36,7 +39,8 @@ func GetCouponsForPage(c echo.Context) error {
 
 	}
 
-	return c.JSON(http.StatusOK, coupons)
+	response := SessionManager.CreateResponseGetSite(net.ParseIP(c.RealIP()), *coupons)
+	return c.JSON(http.StatusOK, response)
 }
 
 // POST /api/coupons?site=<sitename>

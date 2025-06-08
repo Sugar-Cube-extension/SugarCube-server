@@ -2,7 +2,6 @@ package utils
 
 import (
 	"net"
-	"sync"
 	"time"
 
 	"github.com/google/uuid"
@@ -14,12 +13,6 @@ type UserSession struct {
 	UserIP           net.IP
 	Index            int
 }
-
-var (
-	sessions sync.Map
-	heap     = &SessionHeap{}
-	heapMu   sync.Mutex
-)
 
 // Data type for quick pruning of outdated requests
 type SessionHeap []*UserSession
@@ -48,23 +41,4 @@ func (h SessionHeap) Peek() *UserSession {
 		return nil
 	}
 	return h[0]
-}
-
-func CreateSession(ip net.IP) uuid.UUID {
-	id := uuid.New()
-	expiresAt := time.Now().Add(5 * time.Minute)
-
-	session := &UserSession{
-		RequestUUID:      id,
-		UserIP:           ip,
-		ExpieryTimeStamp: expiresAt,
-	}
-
-	sessions.Store(id, session)
-
-	heapMu.Lock()
-	heap.Push(session)
-	heapMu.Unlock()
-
-	return id
 }

@@ -108,6 +108,7 @@ func Init(UserSession *utils.SessionCtx) error {
 
 	UserSessionManager = services.NewSessionManager()
 	services.StartPruner(UserSessionManager)
+	apiHandler.SessionManager = UserSessionManager
 
 	// Echo Server Setup
 	e := echo.New()
