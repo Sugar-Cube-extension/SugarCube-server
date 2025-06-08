@@ -9,22 +9,23 @@ import (
 	"github.com/rs/zerolog/log"
 )
 
-var HEADER string = "SC-Api-version"
-var API_VER string = "v1"
+var HEADER = "SC-Api-version"
+var API_VER = "v1"
 
 func CheckUserAgent(next echo.HandlerFunc) echo.HandlerFunc {
 	return func(ctx echo.Context) error {
-		header := ctx.Request().Header
+		version := strings.TrimSpace(ctx.Request().Header.Get(HEADER))
 
-		if strings.Compare(header.Get(HEADER), API_VER) == 0 {
+		if version != API_VER {
 			log.Warn().
 				Str("ip", ctx.RealIP()).
-				Str("header", HeaderToString(header)).
+				Str("received_version", version).
+				Str("expected_version", API_VER).
+				Str("header_dump", HeaderToString(ctx.Request().Header)).
 				Str("path", ctx.Request().URL.Path).
-				Msg("Blocked request due to invalid header")
+				Msg("Blocked request due to invalid API version header")
 
 			return ctx.String(http.StatusForbidden, "Forbidden")
-
 		}
 		return next(ctx)
 	}
