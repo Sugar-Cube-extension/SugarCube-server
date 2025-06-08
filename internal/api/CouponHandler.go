@@ -51,6 +51,10 @@ func AddCouponToSite(c echo.Context) error {
 			"error": "Missing site parameter",
 		})
 	}
+	if c.Request().Header.Get("Content-Type") != "application/json" {
+		return c.JSON(http.StatusUnsupportedMediaType, map[string]string{
+			"error": "Content-Type must be application/json"})
+	}
 
 	var coupon database.CouponEntry
 	if err := c.Bind(&coupon); err != nil {
